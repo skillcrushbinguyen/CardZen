@@ -55,3 +55,16 @@ CodeCoverage/
 *.VisualState.xml
 TestResult.xml
 nunit-*.xml
+
+# --- Node.js / Tailwind ---
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+# Không ignore package.json và package-lock.json để GitHub Action biết đường cài đặt
+
+# --- Build Output ---
+# Chỉ ignore file css nếu bạn muốn GitHub Action tự build hoàn toàn
+# Nếu muốn xem preview css trên local mà không cần build lại thì có thể bỏ dòng này
+wwwroot/css/app.css

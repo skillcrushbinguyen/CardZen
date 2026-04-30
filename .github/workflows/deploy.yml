@@ -1,0 +1,48 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [ main ] # Hoặc nhánh bạn dùng để code chính
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Setup Node.js (for Tailwind)
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Tailwind CSS
+        run: |
+          npm install
+          npx tailwindcss -i ./Styles/app.css -o ./wwwroot/css/app.css
+
+      - name: Publish .NET Project
+        run: dotnet publish -c Release -o release
+
+      - name: Fix Service Worker for GitHub Pages
+        # Sửa base href nếu repo của bạn không phải là [username].github.io
+        # Thay 'Ten-Repo-Cua-Ban' bằng tên repo thực tế
+        run: |
+          sed -i 's/<base href="\/" \/>/<base href="\/CardZen\/" \/>/g' release/wwwroot/index.html
+
+      - name: Add .nojekyll and 404.html
+        run: |
+          touch release/wwwroot/.nojekyll
+          cp release/wwwroot/index.html release/wwwroot/404.html
+
+      - name: Deploy to GitHub Pages
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: release/wwwroot
+          branch: gh-pages # Nhánh mà GitHub Pages sẽ dùng để hiển thị web
