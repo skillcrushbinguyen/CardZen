@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>CardZen</title>
     <base href="/CardZen/" />
-    <link href="_framework/dotnet.poi10z9lcb.js" rel="preload" as="script" fetchpriority="high" crossorigin="anonymous" integrity="sha256-2VDg0TOBSzZdrksezpRJXPt1PL23vfe/VY+l/3L58Nc=" />
+    <link href="_framework/dotnet.w4b696rnzl.js" rel="preload" as="script" fetchpriority="high" crossorigin="anonymous" integrity="sha256-IJFf3cOVPpuRbP0Egh8Be2QnYwKlPE2AYK0vaQZ27Fo=" />
     <link rel="stylesheet" href="lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="css/app.css" />
     <link rel="icon" type="image/png" href="favicon.png" />
@@ -18,19 +18,19 @@
   "imports": {
     "./_framework/blazor.webassembly.js": "./_framework/blazor.webassembly.66stpp682q.js",
     "./_framework/dotnet.native.js": "./_framework/dotnet.native.mx9wzm9o5h.js",
-    "./_framework/dotnet.js": "./_framework/dotnet.poi10z9lcb.js",
-    "./_framework/dotnet.runtime.js": "./_framework/dotnet.runtime.2zl32tp6ah.js"
+    "./_framework/dotnet.runtime.js": "./_framework/dotnet.runtime.2zl32tp6ah.js",
+    "./_framework/dotnet.js": "./_framework/dotnet.w4b696rnzl.js"
   },
   "scopes": {},
   "integrity": {
     "./_framework/blazor.webassembly.66stpp682q.js": "sha256-3lCWrko3zwspV40aQhs2S/IMkRSarnHRKIdkHhuXIBA=",
     "./_framework/blazor.webassembly.js": "sha256-3lCWrko3zwspV40aQhs2S/IMkRSarnHRKIdkHhuXIBA=",
-    "./_framework/dotnet.js": "sha256-2VDg0TOBSzZdrksezpRJXPt1PL23vfe/VY+l/3L58Nc=",
+    "./_framework/dotnet.js": "sha256-IJFf3cOVPpuRbP0Egh8Be2QnYwKlPE2AYK0vaQZ27Fo=",
     "./_framework/dotnet.native.js": "sha256-tlrn00yvndmJzhFdKpELUlytdgWFyGFdTWjI10bgILU=",
     "./_framework/dotnet.native.mx9wzm9o5h.js": "sha256-tlrn00yvndmJzhFdKpELUlytdgWFyGFdTWjI10bgILU=",
-    "./_framework/dotnet.poi10z9lcb.js": "sha256-2VDg0TOBSzZdrksezpRJXPt1PL23vfe/VY+l/3L58Nc=",
     "./_framework/dotnet.runtime.2zl32tp6ah.js": "sha256-/ndm/PF1BeBT5mXzYAES79wNK5sIZIQKAGcUqPL9ZP8=",
-    "./_framework/dotnet.runtime.js": "sha256-/ndm/PF1BeBT5mXzYAES79wNK5sIZIQKAGcUqPL9ZP8="
+    "./_framework/dotnet.runtime.js": "sha256-/ndm/PF1BeBT5mXzYAES79wNK5sIZIQKAGcUqPL9ZP8=",
+    "./_framework/dotnet.w4b696rnzl.js": "sha256-IJFf3cOVPpuRbP0Egh8Be2QnYwKlPE2AYK0vaQZ27Fo="
   }
 }</script>
 </head>
@@ -49,7 +49,15 @@
         <a href="." class="reload">Reload</a>
         <span class="dismiss">🗙</span>
     </div>
-    <script src="_framework/blazor.webassembly.66stpp682q.js"></script>
+    <script src="_framework/blazor.webassembly.66stpp682q.js" autostart="false"></script>
+    <script>
+        Blazor.start({
+            loadBootResource: function (type, name, defaultUri, integrity) {
+            // Bỏ qua kiểm tra integrity cho môi trường GitHub Pages
+            return defaultUri;
+            }
+        });
+    </script>
     <script>navigator.serviceWorker.register('service-worker.js', { updateViaCache: 'none' });</script>
 </body>
 
