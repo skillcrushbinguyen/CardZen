@@ -1,16 +1,52 @@
-﻿@inherits LayoutComponentBase
-<div class="page">
-    <div class="sidebar">
-        <NavMenu />
-    </div>
+﻿@* File: Shared/MainLayout.razor *@
+@inherits LayoutComponentBase
 
-    <main>
-        <div class="top-row px-4">
-            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
+<div class="min-h-screen bg-gray-50 font-sans pb-20 md:pb-0">
+    <!-- Header (Desktop & Mobile) -->
+    <header class="bg-white border-b sticky top-0 z-30">
+        <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                <div class="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-wallet text-white"></i>
+                </div>
+                <h1 class="text-xl font-bold text-gray-800">CardZen</h1>
+            </div>
+            
+            <!-- Desktop Nav -->
+            <nav class="hidden md:flex gap-6">
+                <NavLink href="/" Match="NavLinkMatch.All" class="nav-link">Tổng quan</NavLink>
+                <NavLink href="/cards" class="nav-link">Ví thẻ</NavLink>
+                <NavLink href="/transactions" class="nav-link">Giao dịch</NavLink>
+            </nav>
         </div>
+    </header>
 
-        <article class="content px-4">
-            @Body
-        </article>
+
+    <!-- Toast Notification -->
+    <ToastContainer />
+
+    <!-- Main Content -->
+    <main class="flex-grow container max-w-6xl mx-auto px-4 py-5 md:py-6">
+        @Body
     </main>
+
+    <!-- Bottom Navigation (Dành riêng cho Mobile) -->
+    <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t flex justify-around py-3 px-2 z-40">
+        <NavLink href="/" Match="NavLinkMatch.All" class="mobile-nav-item">
+            <i class="fas fa-chart-pie text-xl"></i>
+            <span class="text-[10px] mt-1">Tổng quan</span>
+        </NavLink>
+        <NavLink href="/cards" class="mobile-nav-item">
+            <i class="fas fa-credit-card text-xl"></i>
+            <span class="text-[10px] mt-1">Ví thẻ</span>
+        </NavLink>
+        <NavLink href="/transactions" class="mobile-nav-item">
+            <i class="fas fa-plus-circle text-2xl text-indigo-600"></i>
+            <span class="text-[10px] mt-1">Nhập liệu</span>
+        </NavLink>
+        <NavLink href="/report" class="mobile-nav-item">
+            <i class="fas fa-history text-xl"></i>
+            <span class="text-[10px] mt-1">Báo cáo</span>
+        </NavLink>
+    </nav>
 </div>

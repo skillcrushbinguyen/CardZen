@@ -1,0 +1,298 @@
+@using System.Diagnostics
+@inject ITransactionService TransactionService
+@inject ToastService ToastService
+@inject Microsoft.JSInterop.IJSRuntime JSRuntime
+@typeparam TTxn
+<div>
+    <h2 class="text-xl font-bold mb-4">Danh sách giao dịch</h2>
+    @if (IsLoading)
+    {
+        <div>Đang tải dữ liệu...</div>
+    }
+    else if (!string.IsNullOrEmpty(ErrorMessage))
+    {
+        <div class="text-red-500">@ErrorMessage</div>
+    }
+    else if (Transactions.Count == 0)
+    {
+        <div>Chưa có giao dịch nào.</div>
+    }
+    else
+    {
+        <div class="h-virtualize">
+            <Virtualize Items="Transactions" Context="txn" ItemSize="114 + 16">
+                <ItemContent>
+                    <div class="relative swipeable-item group"
+                        tabindex="0"
+                        style="--txn-border-color: @(txn.Type == "EXPENSE" ? "#f43f5e" : txn.Type == "INCOME" ? "#10b981" : "#64748b"); height: 114px; margin-bottom: 16px;"
+                        data-txn-id="@txn.Id" @key="txn.Id">
+                        <!-- Nội dung chính, sẽ translate khi swipe, chứa luôn actions ở cuối -->
+                        <div class="content flex-1 flex items-stretch gap-3 transition-transform duration-200 rounded-2xl border border-slate-200 shadow-sm bg-white overflow-hidden
+                            hover:shadow-xl hover:scale-[1.01] active:scale-95 focus-within:ring-2 focus-within:ring-indigo-300"
+                            style="will-change: transform; width: 100%; border-left: 8px solid @(txn.Type == "EXPENSE" ? "#f43f5e" : txn.Type == "INCOME" ? "#10b981" : "#64748b"); border-radius: 16px;"
+                        >
+                            <!-- Icon tròn lớn bên trái với border-left bo góc -->
+                            <div class="flex flex-col items-center justify-center min-w-[56px]">
+                                <div class="icon-border flex items-center justify-center w-11 h-11 rounded-full mb-1"
+                                    style="background: #f1f5f9; box-sizing: border-box;">
+                                    <span class="text-xl font-bold text-slate-600">
+                                        @GetCategoryIcon(txn.Category)
+                                    </span>
+                                </div>
+                                <div class="text-xs text-slate-400">@txn.Date.ToString("dd/MM")</div>
+                            </div>
+                            <!-- Nội dung bên phải -->
+                            <div class="flex-1 flex flex-col justify-center py-2">
+                                <div class="flex items-center gap-2">
+                                    <span class="font-bold text-lg text-slate-800">@txn.Amount.ToString("N0")đ</span>
+                                    <span class="ml-1 text-xs font-bold @(txn.CashbackAmount > 0 ? "text-indigo-600" : "text-slate-400")">+@txn.CashbackAmount.ToString("N0")đ</span>
+                                </div>
+                                <div class="mt-1">
+                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-slate-100 text-slate-700 inline-block">
+                                        @GetCardName(txn.CardId)
+                                    </span>
+                                </div>
+                                <div class="flex flex-wrap gap-2 mt-1 text-xs text-slate-500">
+                                    <span class="font-semibold">@txn.Category</span>
+                                    <span>|</span>
+                                    <span>MCC: <span class="font-semibold">@txn.Mcc</span></span>
+                                </div>
+                                @if (!string.IsNullOrWhiteSpace(txn.Note))
+                                {
+                                    <div class="text-xs text-slate-400 italic mt-1 line-clamp-2">@txn.Note</div>
+                                }
+                            </div>
+                            <!-- Actions: nằm trong content, flex-row, luôn ở cuối -->
+                            <div class="actions flex flex-row md:absolute md:top-0 md:right-0 md:h-full md:flex-col md:gap-2 z-10">
+                                <!-- Edit -->
+                                <button class="action-btn edit" title="Sửa" @onclick:stopPropagation="true" @onclick="() => OnEditClick(txn)" disabled="@IsLoading">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536M9 13l6-6 3 3-6 6H9v-3z" /></svg>
+                                </button>
+                                <!-- Copy -->
+                                <button class="action-btn copy" title="Sao chép" @onclick:stopPropagation="true" @onclick="() => OnCopyClick(txn)" disabled="@IsLoading">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><rect x="9" y="9" width="13" height="13" rx="2" ry="2" stroke-width="2" stroke="currentColor" fill="none"/><rect x="3" y="3" width="13" height="13" rx="2" ry="2" stroke-width="2" stroke="currentColor" fill="none"/></svg>
+                                </button>
+                                <!-- Delete -->
+                                <button class="action-btn delete" title="Xóa" @onclick:stopPropagation="true" @onclick="() => OnDeleteClick(txn)" disabled="@(IsLoading || DeletingId == txn.Id)">
+                                    @if (DeletingId == txn.Id)
+                                    {
+                                        <svg class="animate-spin h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path></svg>
+                                    }
+                                    else
+                                    {
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                                    }
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </ItemContent>
+            </Virtualize>
+        </div>
+    }
+</div>
+                
+
+@code {
+    private int _lastSwipeCount = 0;
+    private List<TransactionModel> Transactions { get; set; } = new List<TransactionModel>();
+    private bool IsLoading = true;
+    private string? ErrorMessage;
+    private string? DeletingId = null;
+
+    [Parameter] public EventCallback<TransactionModel> OnSelectTransaction { get; set; }
+    [Parameter] public EventCallback<TransactionModel> OnCopyTransaction { get; set; }
+    [Parameter] public EventCallback OnTransactionDeleted { get; set; }
+    [Parameter] public List<CardModel> CardList { get; set; } = new();
+    [Parameter] public List<SelectOption> CategoryList { get; set; } = new();
+
+    private async void OnEditClick(TransactionModel txn)
+    {
+        await OnSelectTransaction.InvokeAsync(txn);
+        await ResetSwipeState(txn.Id);
+        await JSRuntime.InvokeVoidAsync("cardzenSwipe.scrollToTop");
+    }
+    private async void OnCopyClick(TransactionModel txn)
+    {
+        await OnCopyTransaction.InvokeAsync(new TransactionModel
+        {
+            CardId = txn.CardId,
+            Amount = txn.Amount,
+            CashbackAmount = txn.CashbackAmount,
+            Category = txn.Category,
+            Date = txn.Date,
+            Mcc = txn.Mcc,
+            Note = txn.Note,
+            Type = txn.Type
+        });
+        await ResetSwipeState(txn.Id);
+        await JSRuntime.InvokeVoidAsync("cardzenSwipe.scrollToTop");
+    }
+    private async void OnDeleteClick(TransactionModel txn)
+    {
+        await OnDeleteTransaction(txn);
+        await ResetSwipeState(txn.Id);
+    }
+
+    private async Task ResetSwipeState(string txnId)
+    {
+        // Gọi JS để remove class 'swiped' khỏi item tương ứng
+        await JSRuntime.InvokeVoidAsync("cardzenSwipe.resetSwipe", txnId);
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var resp = await TransactionService.GetTransactionsAsync();
+            if (resp.Status && resp.Data != null)
+            {
+                Transactions = resp.Data;
+            }
+            else
+            {
+                ErrorMessage = resp.Error ?? "Không thể tải dữ liệu giao dịch.";
+            }
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = ex.Message;
+        }
+        IsLoading = false;
+    }
+
+    private DotNetObjectReference<TransactionList<TTxn>>? _dotNetRef;
+    protected override void OnAfterRender(bool firstRender)
+    {
+        int swipeCount = Transactions?.Count ?? 0;
+        if (swipeCount != _lastSwipeCount || firstRender)
+        {
+            try
+            {
+                _dotNetRef ??= DotNetObjectReference.Create(this);
+                var jsInProcess = JSRuntime as IJSInProcessRuntime;
+                if (jsInProcess != null)
+                {
+                    jsInProcess.InvokeVoid("cardzenSwipe.registerSwipeActions", ".swipeable-item", ".swipe-actions", _dotNetRef);
+                }
+                else
+                {
+                    JSRuntime.InvokeVoidAsync("cardzenSwipe.registerSwipeActions", ".swipeable-item", ".swipe-actions", _dotNetRef).AsTask().Wait();
+                }
+            }
+            catch { }
+            _lastSwipeCount = swipeCount;
+        }
+    }
+
+    [JSInvokable]
+    public void OnSwipe(string direction, string txnId)
+    {
+        Console.WriteLine($"[SWIPE] direction={direction}, txnId={txnId}");
+    }
+
+    public async Task ReloadTransactions()
+    {
+        IsLoading = true;
+        StateHasChanged();
+        try
+        {
+            var resp = await TransactionService.GetTransactionsAsync();
+            if (resp.Status && resp.Data != null)
+            {
+                Transactions = resp.Data;
+            }
+            else
+            {
+                ErrorMessage = resp.Error ?? "Không thể tải dữ liệu giao dịch.";
+            }
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = ex.Message;
+        }
+        IsLoading = false;
+        StateHasChanged();
+    }
+    
+    private string GetCategoryIcon(string? category)
+    {
+        string? icon = CategoryList.FirstOrDefault(c => c.Value == category)?.Icon;
+        if (!string.IsNullOrEmpty(icon)) return icon;
+        
+        // Demo: trả về emoji hoặc icon theo category, có thể mở rộng
+        return category switch
+        {
+            "Ăn uống" => "🍔",
+            "Mua sắm" => "🛒",
+            "Đi lại" => "🚗",
+            "Giải trí" => "🎮",
+            "Du lịch" => "✈️",
+            "Học tập" => "📚",
+            _ => "💳"
+        };
+    }
+
+    private string GetCardName(string? cardId)
+    {
+        var card = CardList?.FirstOrDefault(c => c.Id == cardId);
+        return card != null ? $"{card.Bank} - {card.Name}" : "";
+    }
+    // Xử lý copy/xóa (placeholder)
+    private async void OnCopy(TransactionModel txn)
+    {
+        // Tạo bản sao, xóa Id để form hiểu là thêm mới
+        var copy = new TransactionModel
+        {
+            CardId = txn.CardId,
+            Amount = txn.Amount,
+            CashbackAmount = txn.CashbackAmount,
+            Category = txn.Category,
+            Date = txn.Date,
+            Mcc = txn.Mcc,
+            Note = txn.Note,
+            Type = txn.Type
+        };
+        await OnCopyTransaction.InvokeAsync(copy);
+    }
+
+    private async Task OnDeleteTransaction(TransactionModel txn)
+    {
+        if (!await ConfirmDelete(txn)) return;
+        try
+        {
+            DeletingId = txn.Id;
+            StateHasChanged();
+            
+            var resp = await TransactionService.DeleteTransactionAsync(txn.Id);
+            if (resp.Status)
+            {
+                ToastService.ShowSuccess("Giao dịch đã được xóa!");
+                await OnTransactionDeleted.InvokeAsync();
+                await ReloadTransactions();
+                StateHasChanged();
+            }
+            else
+            {
+                ErrorMessage = resp.Error ?? "Xóa giao dịch thất bại.";
+                ToastService.ShowError(ErrorMessage);
+            }
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = ex.Message;
+            ToastService.ShowError(ErrorMessage);
+        }
+        finally
+        {
+            DeletingId = null;
+            StateHasChanged();
+        }
+    }
+
+    private async Task<bool> ConfirmDelete(TransactionModel txn)
+    {
+        // Dùng JS confirm đơn giản
+        return await JSRuntime.InvokeAsync<bool>("confirm", $"Bạn có chắc muốn xóa giao dịch {txn.Amount:N0}đ ngày {txn.Date:dd/MM/yyyy}?");
+    }
+}

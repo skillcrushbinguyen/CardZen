@@ -1,0 +1,349 @@
+@using CardZen.Models
+
+@inject ToastService ToastService
+
+@* CardList, CategoryList, MccList truyền từ ngoài *@
+<EditForm Model="TxnModel" OnValidSubmit="OnValidSubmitAsync">
+    <div class="relative bg-white rounded-[1.5rem] p-4 sm:p-5 shadow-2xl shadow-slate-200/60 border border-slate-100 space-y-2.5">
+        <!-- Hidden input tnx id -->
+        <InputHidden id="txn-id" @bind-Value="TxnModel.Id" />
+
+        <!-- Chọn thẻ -->
+        <div class="absolute -top-6 left-1/2 -translate-x-1/2 bg-white px-4 py-1.5 border border-slate-200 rounded-full shadow-sm z-10 flex items-center gap-2 min-w-[60%]">
+            <div id="card-icon-dot" class="w-2 h-2 rounded-full bg-slate-300"></div>
+            <InputSelect id="txn-card-id" TValue="string" Value="TxnModel.CardId" ValueChanged="OnCardChanged" ValueExpression="() => TxnModel.CardId" class="bg-transparent text-[11px] font-black uppercase tracking-widest text-slate-600 focus:outline-none cursor-pointer w-full text-center">
+                <option value="">CHỌN THẺ</option>
+                @if (CardList != null)
+                {
+                    @foreach (var card in CardList)
+                    {
+                        <option value="@card.Id">@card.Bank - @card.Name</option>
+                    }
+                }
+            </InputSelect>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3 mt-8">
+            <!-- Ngày giao dịch -->
+            <div class="flex flex-col gap-1">
+                <label for="txn-date" class="font-bold text-xs">Ngày giao dịch</label>
+                <InputDate @bind-Value="TxnModel.Date" id="txn-date" name="date" class="w-full rounded-xl px-3 py-2 border border-slate-200 text-sm field-control date-input-native" @onchange="OnDateChanged" />
+            </div>
+            <!-- Loại giao dịch -->
+            <div class="flex flex-col gap-1">
+                <label class="font-bold text-xs">Loại giao dịch</label>
+                <div class="flex bg-slate-100 p-1 rounded-xl border border-slate-200/60 items-center shadow-inner">
+                    <InputRadioGroup TValue="string" @bind-Value="TxnModel.Type">
+                        <label class="cursor-pointer h-full">
+                            <InputRadio Value=@("EXPENSE") class="peer hidden" />
+                            <div class="px-4 h-full flex items-center justify-center rounded-lg font-black text-[10px] transition-all peer-checked:bg-rose-500 peer-checked:text-white text-slate-400 uppercase tracking-tighter">Chi</div>
+                        </label>
+                        <label class="cursor-pointer h-full">
+                            <InputRadio Value=@("INCOME") class="peer hidden" />
+                            <div class="px-4 h-full flex items-center justify-center rounded-lg font-black text-[10px] transition-all peer-checked:bg-emerald-500 peer-checked:text-white text-slate-400 uppercase tracking-tighter">Thu</div>
+                        </label>
+                    </InputRadioGroup>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+            <!-- Số tiền chi tiêu -->
+            <div class="flex flex-col gap-1">
+                <label class="font-bold text-xs">Số tiền chi tiêu</label>
+                <SmartMoneyInput @bind-Value="TxnModel.Amount" OnUpdate="OnAmountChanged" />
+            </div>
+            <!-- Số tiền cashback -->
+            <div class="flex flex-col gap-1">
+                <label class="font-bold text-xs">Cashback</label>
+                <SmartMoneyInput @bind-Value="TxnModel.CashbackAmount" OnUpdate="OnCashbackChanged" />
+                <div class="mt-1 text-xs">
+                    <span class="font-bold text-indigo-600">@CashbackPreview</span>
+                    @if (!string.IsNullOrEmpty(CashbackWarning))
+                    {
+                        <span class="ml-2 text-amber-500">⚠️ @CashbackWarning</span>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Tiến độ hoàn tiền (overview) -->
+        @if (CurrentCardReward != null)
+        {
+            <div class="mb-2 p-3 rounded-xl border border-slate-100 bg-slate-50 flex flex-col gap-1">
+                <div class="flex items-center gap-2">
+                    <span class="font-bold text-xs text-slate-700">Hoàn tiền kỳ này:</span>
+                    <span class="font-bold text-indigo-600">@CurrentCardReward.Earned.ToString("N0")đ</span>
+                    <span class="text-xs text-slate-400">/ @((CurrentCardReward.Limit > 0 ? CurrentCardReward.Limit.ToString("N0") + "đ" : "Không giới hạn"))</span>
+                    <span class="ml-2 text-xs font-bold text-emerald-600">@CurrentCardReward.Ratio.ToString("0")%</span>
+                </div>
+            </div>
+        }
+
+
+        <!-- Danh mục & MCC: cùng 1 hàng -->
+        <div class="grid grid-cols-2 gap-3">
+            <div class="flex flex-col gap-1">
+                <label class="font-bold text-xs">Danh mục</label>
+                <CategoryGrid Categories="@CategoryList" SelectedValue="@TxnModel.Category" SelectedValueChanged="OnCategoryChanged" />
+                <InputHidden id="txn-category" @bind-Value="TxnModel.Category" />
+            </div>
+            <div class="flex flex-col gap-1">
+                <label class="font-bold text-xs">MCC hoàn tiền</label>
+                <MccGrid MccList="@MccList" SelectedValue="@TxnModel.Mcc" SelectedValueChanged="OnMccChanged" />
+                <InputHidden id="txn-mcc" @bind-Value="TxnModel.Mcc" />
+            </div>
+        </div>
+
+        <!-- Ghi chú -->
+        <div class="w-full flex flex-col gap-1">
+            <label for="txn-note" class="font-bold text-xs">Ghi chú giao dịch</label>
+            <InputTextArea id="txn-note" @bind-Value="TxnModel.Note" class="w-full rounded-xl px-3 py-2 border border-slate-200 text-sm field-control" rows="2" />
+            <div id="txn-note-feedback" class="feedback-msg hidden"></div>
+        </div>
+
+        <!-- Button Lưu và Hủy -->
+        <div class="flex gap-3 mt-2">
+            <button type="submit" id="txn-submit-btn" class="flex-1 py-4 bg-slate-900 text-white rounded-2xl font-black uppercase tracking-wider shadow-xl transition-all duration-300 active:scale-95 flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed" disabled="@isSaving">
+                @if (isSaving)
+                {
+                    <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path></svg>
+                    <span>Đang lưu...</span>
+                }
+                else
+                {
+                    <span>Lưu</span>
+                }
+            </button>
+            @if (TransactionToEdit != null)
+            {
+                <button type="button" class="flex-1 py-4 bg-slate-200 text-slate-700 rounded-2xl font-black uppercase tracking-wider shadow-xl transition-all duration-300 active:scale-95 border border-slate-300"
+                        @onclick="OnCancelEditClicked" disabled="@isSaving">
+                    Hủy
+                </button>
+            }
+        </div>
+    </div>
+</EditForm>
+
+@code {
+    [Parameter] public TransactionModel? TransactionToEdit { get; set; }
+    [Parameter] public EventCallback OnTransactionUpdated { get; set; }
+    [Parameter] public EventCallback OnCancelEdit { get; set; }
+    [Parameter] public List<CardModel> CardList { get; set; } = new();
+    [Parameter] public List<SelectOption> CategoryList { get; set; } = new();
+    [Parameter] public List<SelectOption> MccList { get; set; } = new();
+
+
+    private TransactionModel TxnModel { get; set; } = new();
+    // State cho reward/cashback
+    private CardModel? CurrentCard;
+    private RewardSummary? CurrentCardReward;
+    private string CashbackPreview = "+0đ";
+    private string? CashbackWarning;
+    private int ActualCashbackAttainable = 0;
+
+    protected override void OnInitialized()
+    {
+        // Default ngày giao dịch là hôm nay
+        if (TxnModel.Date == default)
+            TxnModel.Date = DateTime.Today; 
+    }
+
+    protected override void OnParametersSet()
+    {
+        if (TransactionToEdit != null)
+        {
+            // Copy giá trị để tránh binding trực tiếp
+            TxnModel = new TransactionModel
+            {
+                Id = TransactionToEdit.Id,
+                CardId = TransactionToEdit.CardId,
+                Amount = TransactionToEdit.Amount,
+                CashbackAmount = TransactionToEdit.CashbackAmount,
+                Category = TransactionToEdit.Category,
+                Date = TransactionToEdit.Date,
+                Mcc = TransactionToEdit.Mcc,
+                Note = TransactionToEdit.Note,
+                Type = TransactionToEdit.Type
+            };
+            // Load lại reward
+            CurrentCard = CardList.FirstOrDefault(c => c.Id == TxnModel.CardId);
+            CurrentCardReward = CurrentCard?.Reward;
+            PreviewCashback();
+        }
+    }
+
+    private async Task OnCancelEditClicked()
+    {
+        ResetForm();
+        if (OnCancelEdit.HasDelegate)
+            await OnCancelEdit.InvokeAsync();
+    }
+
+    private async Task OnCardChanged(string cardId)
+    {
+        Console.WriteLine($"[DEBUG] OnCardChanged: {cardId}");
+        TxnModel.CardId = cardId;
+        CurrentCard = CardList.FirstOrDefault(c => c.Id == cardId);
+        CurrentCardReward = CurrentCard?.Reward;
+        await InvokeAsync(StateHasChanged);
+        PreviewCashback();
+    }
+
+    private void OnCategoryChanged(string value)
+    {
+        Console.WriteLine($"[DEBUG] OnCategoryChanged: {value}");
+        TxnModel.Category = value;
+    }
+    
+    private void OnMccChanged(string value)
+    {
+        Console.WriteLine($"[DEBUG] OnMccChanged: {value}");
+        TxnModel.Mcc = value;
+        PreviewCashback();
+    }
+
+    [Inject] public ITransactionService TransactionService { get; set; } = default!;
+
+    private bool isSaving = false;
+    private async Task OnValidSubmitAsync()
+    {
+        isSaving = true;
+        StateHasChanged();
+        try
+        {
+            var result = await TransactionService.SaveTransactionAsync(TxnModel);
+            if (result.Status)
+            {
+                if (!string.IsNullOrEmpty(TransactionToEdit?.Id))
+                {
+                    ToastService.ShowSuccess("Giao dịch đã được cập nhật!");
+                }
+                else
+                {
+                    ToastService.ShowSuccess("Giao dịch đã được tạo!");
+                }
+                
+                ResetForm();
+                if (OnTransactionUpdated.HasDelegate)
+                    await OnTransactionUpdated.InvokeAsync();
+            }
+            else
+            {
+                ToastService.ShowError($"Lỗi lưu giao dịch: {result.Error ?? "Không xác định"}");
+            }
+        }
+        finally
+        {
+            isSaving = false;
+            StateHasChanged();
+        }
+    }
+
+    private void ResetForm()
+    {
+        TxnModel = new TransactionModel();
+        // Default ngày giao dịch là hôm nay
+        if (TxnModel.Date == default)
+            TxnModel.Date = DateTime.Today;
+        CurrentCard = null;
+        CurrentCardReward = null;
+        CashbackPreview = "+0đ";
+        CashbackWarning = null;
+        ActualCashbackAttainable = 0;
+        StateHasChanged();
+    }
+
+
+    private void OnAmountChanged(int value)
+    {
+        Console.WriteLine($"[DEBUG] OnAmountChanged: {value}");
+        TxnModel.Amount = value;
+        PreviewCashback();
+    }
+
+    private void OnDateChanged(ChangeEventArgs e)
+    {
+        Console.WriteLine($"[DEBUG] OnDateChanged: {e.Value}");
+        if (DateTime.TryParse(e.Value?.ToString(), out var newDate))
+        {
+            TxnModel.Date = newDate;
+            PreviewCashback();
+        }
+    }
+
+    private void OnCashbackChanged(int value)
+    {
+        TxnModel.CashbackAmount = value;
+    }
+
+    private void PreviewCashback()
+    {
+        Console.WriteLine($"[DEBUG] PreviewCashback called. CardId={TxnModel.CardId}, Amount={TxnModel.Amount}, MCC={TxnModel.Mcc}, Date={TxnModel.Date:yyyy-MM-dd}, Type={TxnModel.Type}");
+        CashbackPreview = "+0đ";
+        CashbackWarning = null;
+        ActualCashbackAttainable = 0;
+
+        if (TxnModel.Type == "INCOME" || string.IsNullOrEmpty(TxnModel.CardId) || TxnModel.Amount <= 0 || string.IsNullOrEmpty(TxnModel.Mcc))
+        {
+            Console.WriteLine($"[DEBUG] PreviewCashback early exit: Type={TxnModel.Type}, CardId={TxnModel.CardId}, Amount={TxnModel.Amount}, MCC={TxnModel.Mcc}");
+            TxnModel.CashbackAmount = 0;
+            return;
+        }
+
+        var reward = CurrentCardReward;
+        if (reward == null || CurrentCard == null)
+        {
+            Console.WriteLine($"[DEBUG] PreviewCashback: reward or CurrentCard is null");
+            TxnModel.CashbackAmount = 0;
+            return;
+        }
+
+        // Tìm rule phù hợp với MCC
+        var rule = CurrentCard.BenefitsList.FirstOrDefault(r => r.MccGroup == TxnModel.Mcc);
+        if (rule == null || rule.Rate <= 0)
+        {
+            Console.WriteLine($"[DEBUG] PreviewCashback: No rule for MCC {TxnModel.Mcc} or rate <= 0");
+            TxnModel.CashbackAmount = 0;
+            return;
+        }
+
+        Console.WriteLine($"[DEBUG] Found rule for MCC {TxnModel.Mcc}: Rate={rule.Rate}%, CatLimit={rule.CatLimit}, CardLimit={reward.Limit}, Earned={reward.Earned}");
+
+        // Tính toán số tiền hoàn thô
+        var estimated = (int)Math.Round(TxnModel.Amount * (rule.Rate / 100.0));
+
+        // Chặn theo hạn mức danh mục (Category Limit)
+        if (rule.CatLimit > 0)
+        {
+            estimated = (int)Math.Min(estimated, rule.CatLimit);
+        }
+
+        // Chặn theo hạn mức tổng thẻ (Global Limit)
+        if (reward.Limit > 0)
+        {
+            var remainingInCard = Math.Max(0, reward.Limit - reward.Earned);
+            estimated = (int)Math.Min(estimated, remainingInCard);
+        }
+
+        CashbackPreview = $"+{estimated:N0}đ";
+        ActualCashbackAttainable = estimated;
+        TxnModel.CashbackAmount = estimated;
+
+        // Cảnh báo nếu chạm trần
+        if (rule.CatLimit > 0 && estimated >= rule.CatLimit)
+        {
+            CashbackWarning = $"Hết hạn mức nhóm {TxnModel.Mcc}";
+        }
+        else if (reward.Limit > 0 && estimated >= reward.Limit)
+        {
+            CashbackWarning = "Hết hạn mức thẻ";
+        }
+        else if (estimated < (int)Math.Round(TxnModel.Amount * (rule.Rate / 100.0)))
+        {
+            CashbackWarning = "Chạm trần hoàn tiền";
+        }
+        Console.WriteLine($"[DEBUG] PreviewCashback done. CashbackAmount={TxnModel.CashbackAmount}, Preview={CashbackPreview}, Warning={CashbackWarning}");
+    }
+}

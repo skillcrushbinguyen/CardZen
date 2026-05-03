@@ -1,0 +1,37 @@
+﻿<div class="flex flex-col border-l border-gray-100 pl-4 info-block-container">
+    <span class="text-[8px] uppercase text-gray-400 font-bold tracking-wider">@Label</span>
+    
+    <div class="flex items-center space-x-1 relative">
+        <span class="text-xs font-bold leading-tight @Status.ColorClass">@Status.Text</span>
+
+        @if (!string.IsNullOrWhiteSpace(Note))
+        {
+            <div class="relative group">
+                @* Thay thế sự kiện click tooltip bằng logic đơn giản trong Blazor *@
+                <span class="material-symbols-outlined text-[14px] text-slate-300 hover:text-indigo-500 cursor-help"
+                      @onclick="ToggleTooltip" @onclick:stopPropagation>
+                    @Icon
+                </span>
+
+                @* Tooltip Box (tt-box)[cite: 3] *@
+                <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-40 z-50 @(showTooltip ? "block" : "hidden")">
+                    <div class="bg-slate-800 text-white text-[10px] p-2 rounded-lg shadow-xl text-center relative">
+                        <span class="leading-relaxed">@Note</span>
+                        <div class="absolute top-full left-1/2 -translate-x-1/2 -mt-1 border-4 border-transparent border-t-slate-800"></div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter] public string Label { get; set; } = "";
+    [Parameter] public string Icon { get; set; } = "info";
+    [Parameter] public CardZen.Utilities.DateStatus Status { get; set; } = new();
+    [Parameter] public string? Note { get; set; }
+
+    private bool showTooltip = false;
+
+    private void ToggleTooltip() => showTooltip = !showTooltip;
+}

@@ -1,0 +1,113 @@
+﻿@using static CardZen.Utilities.CardLogic
+@inject IJSRuntime JS
+
+<div class="group relative bg-white border border-gray-100 rounded-3xl p-6 shadow-sm hover:shadow-2xl hover:-translate-y-1.5 transition-all duration-500 flex flex-col justify-between overflow-hidden">
+    
+    @* Thay thế ui_applyCardStyle: Sử dụng inline style dựa trên logic C# *@
+    <div class="absolute top-0 left-0 w-full h-2" style="background: @GetBankGradient()"></div>
+    
+    <div>
+        <div class="flex justify-between items-start mb-4">
+            <div class="flex flex-col flex-1">
+                <div class="flex items-center gap-2 mb-1">
+                    <span class="text-[10px] font-black uppercase tracking-widest" style="color: @GetBankColor()">
+                        @Card.Bank
+                    </span>
+                    <span class="px-2 py-0.5 text-[9px] font-black rounded-lg uppercase @(Card.Status == "Active" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700")">
+                        @Card.Status
+                    </span>
+                </div>
+                <h3 class="text-xl font-black text-gray-900 leading-tight">@Card.Name</h3>
+                
+                <div class="flex flex-wrap gap-1 mt-2.5 min-h-[22px]">
+                    @if (Card.BenefitsList != null)
+                    {
+                        @foreach (var benefit in Card.BenefitsList.OrderByDescending(x => x.Rate).Take(2))
+                        {
+                            <span class="px-2 py-0.5 bg-gray-50 text-gray-600 text-[9px] font-bold rounded-lg border border-gray-100">
+                                @benefit.MccGroup @benefit.Rate%
+                            </span>
+                        }
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-5 bg-gray-50 rounded-2xl p-4">
+            <div class="flex justify-between items-end mb-1.5">
+                <p class="text-[9px] text-gray-400 uppercase font-bold tracking-wider">Hiệu suất hoàn tiền</p>
+                <p class="text-xl font-black text-indigo-600 tracking-tighter">@EffectiveRate%</p>
+            </div>
+            
+            <div class="relative w-full h-2.5 bg-gray-200 rounded-full overflow-hidden">
+                <div class="h-full bg-emerald-500 rounded-full transition-all duration-1000" 
+                     style="width: @(Card.Reward?.Ratio ?? 0)%"></div>
+            </div>
+
+            <div class="flex justify-between text-[10px] mt-2.5 text-gray-700 font-medium">
+                <span>@(Card.Reward != null ? $"Đã hoàn: {Card.Reward.Earned:N0} / {Card.Reward.Limit:N0}" : "Không áp dụng cashback")</span>
+                <span class="font-black text-emerald-700">@(Math.Round(Card.Reward?.Ratio ?? 0))% bão hòa</span>
+            </div>
+        </div>
+    </div>
+
+    @* Footer Buttons *@
+    <div class="mt-6 pt-5 border-t border-gray-100 flex justify-between items-center">
+        <div class="flex gap-4">
+            <div class="flex gap-4">
+                @* 1. Khối Sao kê *@
+                <InfoBlock Label="Sao kê" 
+                        Status="@GetDateStatus(Card.NextStatementDate)" />
+
+                @* 2. Khối Thanh toán *@
+                <InfoBlock Label="Thanh toán" 
+                        Icon="payments"
+                        Status="@GetDateStatus(Card.NextDueDate, "due", Card.IsPaid)"
+                        Note="@Card.BillingNote" />
+
+                @* 3. Khối Phí TN (Chỉ hiện nếu có ngày phí)[cite: 1] *@
+                @if (Card.AnnualFeeDate.HasValue)
+                {
+                    <InfoBlock Label="Phí TN" 
+                            Icon="local_offer"
+                            Status="@GetDateStatus(Card.AnnualFeeDate, "fee", Card.HasOffer)"
+                            Note="@Card.FeeNote" />
+                }
+            </div>
+        </div>
+        
+        <div class="flex gap-2 items-center">
+            <button @onclick="OnEdit" class="opacity-0 group-hover:opacity-100 p-3 bg-gray-900 text-white rounded-2xl hover:bg-indigo-600 transition-all shadow-lg transform translate-y-2 group-hover:translate-y-0 duration-300">
+                <i class="material-icons text-sm">edit</i>
+            </button>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public CardModel Card { get; set; } = new();
+    [Parameter] public EventCallback<string> OnEditRequested { get; set; }
+
+    private string EffectiveRate => (Card.Reward != null && Card.TotalUsed > 0) 
+        ? ((double)Card.Reward.Earned / Card.TotalUsed * 100).ToString("F1") 
+        : "0";
+
+    private async Task OnEdit() => await OnEditRequested.InvokeAsync(Card.Id);
+
+    // Logic thay thế ui_applyCardStyle
+    private string GetBankGradient() => Card.Bank.ToUpper() switch
+    {
+        "VIB" => "linear-gradient(90deg, #005baa 0%, #003366 100%)",
+        "VPBANK" => "linear-gradient(90deg, #009a58 0%, #006633 100%)",
+        "CAKE" => "linear-gradient(90deg, #fe2c55 0%, #c41235 100%)",
+        _ => "linear-gradient(90deg, #6366f1 0%, #4f46e5 100%)"
+    };
+
+    private string GetBankColor() => Card.Bank.ToUpper() switch
+    {
+        "VIB" => "#005baa",
+        "VPBANK" => "#009a58",
+        "CAKE" => "#fe2c55",
+        _ => "#6366f1"
+    };
+}

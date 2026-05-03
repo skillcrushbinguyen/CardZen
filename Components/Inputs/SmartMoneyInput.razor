@@ -1,0 +1,104 @@
+@using Microsoft.AspNetCore.Components
+@using Microsoft.AspNetCore.Components.Web
+
+<div class="relative">
+    <!-- Label removed for external control -->
+            <input type="text"
+                class="w-full rounded-xl px-3 py-2 border border-slate-200 text-right font-mono text-lg focus:ring-2 focus:ring-indigo-500 transition-all"
+                @bind="DisplayValue"
+                @bind:event="oninput"
+                @onblur="OnBlur"
+                @onkeydown="HandleKeyDown"
+                @onkeydown:preventDefault="isEnterKeyDown"
+                placeholder="0"
+                autocomplete="off" />
+    <input type="hidden" value="@Value" />
+    @if (ShowPreview && PreviewValue > 0)
+    {
+        <div class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-indigo-500 bg-white px-2 rounded shadow">= @PreviewValue.ToString("N0")đ</div>
+    }
+</div>
+
+@code {
+    [Parameter] public string Label { get; set; } = "Số tiền";
+    [Parameter] public int Value { get; set; }
+    [Parameter] public EventCallback<int> ValueChanged { get; set; }
+    [Parameter] public string? ExtraClass { get; set; }
+    [Parameter] public EventCallback<int> OnUpdate { get; set; }
+
+    private string DisplayValue { get; set; } = string.Empty;
+    private int PreviewValue { get; set; }
+    private bool ShowPreview { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        if (Value > 0 && string.IsNullOrEmpty(DisplayValue))
+            DisplayValue = Value.ToString("N0");
+    }
+
+    private void OnBlur(FocusEventArgs e)
+    {
+        if (int.TryParse(ParseExpression(DisplayValue).ToString(), out var val))
+        {
+            DisplayValue = val.ToString("N0");
+            UpdateValue(val);
+        }
+    }
+
+    private bool isEnterKeyDown = false;
+
+    private void HandleKeyDown(KeyboardEventArgs e)
+    {
+        isEnterKeyDown = e.Key == "Enter";
+        if (e.Key == "Enter" || e.Key == "=")
+        {
+            var val = ParseExpression(DisplayValue);
+            DisplayValue = val.ToString("N0");
+            UpdateValue(val);
+            ShowPreview = false;
+        }
+        else
+        {
+            // Show preview if expression
+            var val = ParseExpression(DisplayValue);
+            if (val != Value && val > 0)
+            {
+                PreviewValue = val;
+                ShowPreview = true;
+            }
+            else
+            {
+                ShowPreview = false;
+            }
+        }
+    }
+
+    private void UpdateValue(int val)
+    {
+        Value = val;
+        ValueChanged.InvokeAsync(val);
+        OnUpdate.InvokeAsync(val);
+    }
+
+    private int ParseExpression(string input)
+    {
+        if (string.IsNullOrWhiteSpace(input)) return 0;
+        try
+        {
+            // Replace k/m with *1000/*1000000, remove commas
+            var expr = input.Replace(",", "").Replace("k", "*1000").Replace("K", "*1000").Replace("m", "*1000000").Replace("M", "*1000000");
+            // Only allow numbers and operators
+            expr = new string(expr.Where(c => char.IsDigit(c) || "+-*/.()".Contains(c)).ToArray());
+            var result = (int)Math.Round(EvalSimple(expr));
+            return result > 0 ? result : 0;
+        }
+        catch { return 0; }
+    }
+
+    // Very simple eval for + - * /
+    private double EvalSimple(string expr)
+    {
+        var dt = new System.Data.DataTable();
+        return Convert.ToDouble(dt.Compute(expr, ""));
+    }
+}
