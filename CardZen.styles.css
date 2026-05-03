@@ -1,3 +1,142 @@
+/* /Components/Shared/ToastContainer.razor.rz.scp.css */
+.animate-fade-in-up[b-ys53cbgs00] {
+    animation: fadeInUp-b-ys53cbgs00 0.4s cubic-bezier(.39,.575,.565,1.000) both;
+}
+@keyframes fadeInUp-b-ys53cbgs00 {
+    0% { opacity: 0; transform: translateY(30px); }
+    100% { opacity: 1; transform: translateY(0); }
+}
+/* /Components/Transactions/TransactionList.razor.rz.scp.css */
+/* Border left for icon only */
+.icon-border[b-559bd29nts] {
+    box-sizing: border-box;
+    background: #f1f5f9;
+}
+/* Action button style */
+.action-btn[b-559bd29nts] {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 100%;
+    /* min-height: 56px; */
+    border: none;
+    background: none;
+    cursor: pointer;
+    transition: background 0.15s;
+    padding: 0;
+}
+
+/* Action button màu nền nhạt, icon/text đậm cùng tone */
+.action-btn.edit[b-559bd29nts] {
+    background: #e0e7ff;
+}
+.action-btn.edit svg[b-559bd29nts] {
+    color: #2563eb;
+}
+.action-btn.copy[b-559bd29nts] {
+    background: #cffafe;
+}
+.action-btn.copy svg[b-559bd29nts] {
+    color: #0ea5e9;
+}
+.action-btn.delete[b-559bd29nts] {
+    background: #fee2e2;
+}
+.action-btn.delete svg[b-559bd29nts] {
+    color: #ef4444;
+}
+.action-btn:disabled[b-559bd29nts] {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+@media (max-width: 640px) {
+    .swipeable-item[b-559bd29nts] {
+        position: relative;
+        overflow: hidden;
+        display: block;
+    }
+    .swipeable-item .content[b-559bd29nts] {
+        display: flex;
+        flex-direction: row;
+        align-items: stretch;
+        overflow: hidden;
+        border-radius: 16px;
+        transition: transform 0.2s;
+        width: calc(100% + 144px) !important; /* Đủ chỗ cho 3 button */
+        height: 100%;
+        min-height: 68px;
+    }
+    .swipeable-item .actions[b-559bd29nts] {
+        flex-direction: row;
+        width: 144px;
+        min-width: 144px;
+        max-width: 144px;
+        /* height: 100%; */
+        position: static;
+        background: #fff;
+        z-index: 2;
+        display: flex !important;
+        align-items: stretch;
+        justify-content: stretch;
+        border-radius: 0 16px 16px 0;
+        box-shadow: none;
+    }
+    .action-btn[b-559bd29nts] {
+        flex: 1 1 0;
+        width: 48px;
+        height: 100%;
+        min-width: 0;
+        min-height: 0;
+        border-radius: 0;
+        border-right: 1px solid #f1f5f9;
+        background: #fff;
+        margin: 0;
+        padding: 0;
+    }
+    .action-btn:last-child[b-559bd29nts] { border-right: none; }
+    .swipeable-item.swiped .content[b-559bd29nts] {
+        transform: translateX(-144px);
+    }
+}
+
+@media (min-width: 641px) {
+    .swipeable-item .content[b-559bd29nts] {
+        display: flex;
+        flex-direction: row;
+        align-items: stretch;
+        overflow: visible;
+    }
+    .swipeable-item .actions[b-559bd29nts] {
+        flex-direction: row;
+        height: 40px;
+        top: 50%;
+        right: 0;
+        position: absolute;
+        transform: translateY(-50%);
+        background: transparent;
+        box-shadow: none;
+        opacity: 0;
+        pointer-events: none;
+        display: flex !important;
+        transition: opacity 0.2s;
+        z-index: 10;
+    }
+    .swipeable-item:hover .actions[b-559bd29nts],
+    .swipeable-item:focus-within .actions[b-559bd29nts] {
+        opacity: 1;
+        pointer-events: auto;
+    }
+    .action-btn[b-559bd29nts] {
+        border-radius: 12px;
+        margin-left: 4px;
+        margin-right: 4px;
+        background: #f1f5f9;
+        height: 40px;
+        width: 40px;
+    }
+}
 /* /Layout/MainLayout.razor.rz.scp.css */
 .page[b-pe6434uifb] {
     position: relative;
@@ -76,6 +215,13 @@ main[b-pe6434uifb] {
         padding-right: 1.5rem !important;
     }
 }
+
+/* Style cho các link đang active */
+.nav-link[b-pe6434uifb] { @apply text-gray-600 hover:text-indigo-600 font-medium transition-colors; }
+.nav-link.active[b-pe6434uifb] { @apply text-indigo-600 border-b-2 border-indigo-600 pb-1; }
+
+.mobile-nav-item[b-pe6434uifb] { @apply flex flex-col items-center text-gray-400 w-full transition-all; }
+.mobile-nav-item.active[b-pe6434uifb] { @apply text-indigo-600 scale-110 font-bold; }
 /* /Layout/NavMenu.razor.rz.scp.css */
 .navbar-toggler[b-kwsfveimzx] {
     background-color: rgba(255, 255, 255, 0.1);
