@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html data-theme="dracula" lang="en">
 
 <head>
     <meta charset="utf-8" />
@@ -43,8 +43,8 @@
     <script>
         Blazor.start({
             loadBootResource: function (type, name, defaultUri, integrity) {
-            // Bỏ qua kiểm tra integrity cho môi trường GitHub Pages
-            return defaultUri;
+                // Bỏ qua kiểm tra integrity cho môi trường GitHub Pages
+                return defaultUri;
             }
         });
     </script>

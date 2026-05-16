@@ -1,17 +1,10 @@
-﻿@* ModalContainer.razor *@
-@if (IsVisible)
-{
-    <div class="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 overflow-hidden">
-        @* Backdrop Overlay *@
-        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" 
-             @onclick="HandleBackdropClick"></div>
-
-        @* Modal Content Container *@
-        <div class="relative bg-white w-full @MaxWidthClass rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] z-10 animate-in fade-in zoom-in duration-300">
-            @ChildContent
-        </div>
+﻿@* DaisyUI Modal dùng <dialog> và modal-open, không checkbox hack *@
+<dialog class="modal @(IsVisible ? "modal-open" : null)">
+    <div class="modal-box @MaxWidthClass" @onclick:stopPropagation="true">
+        @ChildContent
     </div>
-}
+    <div class="modal-backdrop" @onclick="HandleBackdropClick"></div>
+</dialog>
 
 @code {
     [Parameter] public bool IsVisible { get; set; }

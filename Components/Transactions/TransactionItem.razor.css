@@ -1,0 +1,173 @@
+/* Avatar styling - không cần custom background vì dùng DaisyUI */
+/* Action button style */
+.action-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 100%;
+    border: none;
+    background: none;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.1s;
+    padding: 0;
+}
+.action-btn:hover:not(:disabled) {
+    transform: scale(1.1);
+}
+
+/* Action button màu nền rõ ràng để phân biệt */
+.action-btn.edit {
+    background: color-mix(in oklch, var(--color-primary), transparent 75%);
+}
+.action-btn.edit:hover:not(:disabled) {
+    background: color-mix(in oklch, var(--color-primary), transparent 65%);
+}
+.action-btn.edit svg {
+    color: var(--color-primary);
+}
+
+.action-btn.copy {
+    background: color-mix(in oklch, var(--color-info), transparent 75%);
+}
+.action-btn.copy:hover:not(:disabled) {
+    background: color-mix(in oklch, var(--color-info), transparent 65%);
+}
+.action-btn.copy svg {
+    color: var(--color-info);
+}
+
+.action-btn.delete {
+    background: color-mix(in oklch, var(--color-error), transparent 75%);
+}
+.action-btn.delete:hover:not(:disabled) {
+    background: color-mix(in oklch, var(--color-error), transparent 65%);
+}
+.action-btn.delete svg {
+    color: var(--color-error);
+}
+
+.action-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* MOBILE: Actions dọc, là phần của swipe layout */
+@media (max-width: 640px) {
+    .swipeable-item {
+        position: relative;
+        overflow: hidden;
+        display: block;
+    }
+    
+    .swipeable-item .content {
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: stretch;
+        overflow: hidden;
+        transition: transform 0.2s;
+        width: calc(100% + 144px) !important; /* Đủ chỗ cho 3 button */
+        height: 100%;
+        min-height: 68px;
+    }
+    
+    /* Actions nằm bên phải content, flex-row (ngang) */
+    .swipeable-item .actions {
+        display: flex !important;
+        flex-direction: row !important;
+        width: 144px;
+        min-width: 144px;
+        max-width: 144px;
+        position: static;
+        background: transparent;
+        z-index: 2;
+        align-items: stretch;
+        justify-content: stretch;
+        gap: 0;
+        border-radius: 0 1rem 1rem 0;
+        box-shadow: none;
+        height: 100%;
+    }
+    
+    .action-btn {
+        flex: 1 1 0;
+        width: 48px;
+        height: 100%;
+        min-height: 0;
+        min-width: 0;
+        border-radius: 0;
+        border-right: 1px solid color-mix(in oklch, var(--color-base-200), transparent 70%);
+        margin: 0;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .action-btn:first-child {
+        border-radius: 0;
+    }
+    .action-btn:last-child { 
+        border-right: none;
+        border-radius: 0 1rem 1rem 0;
+    }
+    
+    /* Swipe effect */
+    .swipeable-item.swiped .content {
+        transform: translateX(-144px);
+    }
+}
+
+/* DESKTOP: Actions ngang, hiển thị khi hover */
+@media (min-width: 641px) {
+    .swipeable-item .content {
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: stretch;
+        overflow: visible;
+        position: relative;
+        padding-right: 12px !important;
+    }
+    
+    /* Actions absolute positioned, ngang (row) */
+    .swipeable-item .actions {
+        display: flex !important;
+        flex-direction: row !important;
+        gap: 6px;
+        height: auto;
+        width: auto;
+        top: 50%;
+        right: 12px;
+        position: absolute;
+        transform: translateY(-50%);
+        background: transparent;
+        box-shadow: none;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.2s, transform 0.2s;
+        z-index: 10;
+    }
+    
+    /* Hiển thị actions khi hover hoặc focus */
+    .swipeable-item:hover .actions,
+    .swipeable-item:focus-within .actions {
+        opacity: 1;
+        pointer-events: auto;
+        transform: translateY(-50%) translateX(0);
+    }
+    
+    .action-btn {
+        border-radius: 0.75rem;
+        background: var(--color-base-100);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        height: 44px;
+        width: 44px;
+        min-width: 44px;
+        min-height: 44px;
+        border: 1px solid var(--color-base-300);
+    }
+    
+    .action-btn:hover:not(:disabled) {
+        transform: scale(1.15);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+}

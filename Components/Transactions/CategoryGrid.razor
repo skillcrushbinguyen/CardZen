@@ -1,7 +1,7 @@
 
 @using CardZen.Models
 @* Dropdown chọn danh mục chi tiêu với icon *@
-<select class="form-select w-full py-2 px-3 rounded-xl border border-slate-200 bg-white text-sm font-bold text-slate-700 flex items-center" @onchange="OnChange" value="@SelectedValue">
+<select class="select select-bordered w-full font-bold" @onchange="OnChange" value="@SelectedValue">
     <option value="">Chọn danh mục</option>
     @if (Categories != null)
     {

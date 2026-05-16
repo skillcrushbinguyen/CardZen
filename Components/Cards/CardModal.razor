@@ -2,77 +2,82 @@
 
 <ModalContainer IsVisible="IsVisible" OnClose="Close" MaxWidthClass="max-w-3xl">
     @* Header *@
-    <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+    <div class="modal-header flex justify-between items-center">
         <div>
-            <h3 class="text-xl font-black text-gray-900 uppercase tracking-tight">
+            <h3 class="text-xl font-black text-base-content uppercase tracking-tight">
                 @(IsEditMode ? "Cấu hình chi tiết thẻ" : "Phát hành thẻ mới")
             </h3>
-            <p class="text-[10px] text-indigo-500 font-black uppercase tracking-widest mt-1">
+            <p class="text-xs text-primary font-black uppercase tracking-widest mt-1">
                 CardZen Management System Console
             </p>
         </div>
-        <button @onclick="Close" class="p-2 hover:bg-gray-200 rounded-full transition-all active:scale-90">
-            <i class="material-icons text-gray-400">close</i>
+        <button @onclick="Close" class="btn btn-ghost btn-sm rounded-full">
+            <i class="material-icons text-base-content">close</i>
         </button>
     </div>
 
     @* Body *@
-    <div class="p-6 overflow-y-auto flex-1 space-y-8 custom-scrollbar">
+    <div class="p-6 overflow-y-auto flex-1 space-y-8">
         @* Section 1: Thông tin định danh (Dạng Text Input như code cũ) *@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div class="space-y-2">
-                <label class="text-[10px] font-black uppercase text-gray-400 ml-1 tracking-widest">Tên hiển thị</label>
-                <input @bind="Card.Name" 
-                       class="w-full px-5 py-4 bg-gray-50 border-2 border-transparent focus:border-indigo-500 focus:bg-white rounded-2xl transition-all font-bold text-gray-800" 
-                       placeholder="VD: VIB Super Card" />
+            <div class="form-control">
+                <label class="label">
+                    <span class="label-text text-xs font-black uppercase">Tên hiển thị</span>
+                </label>
+                <input @bind="Card.Name" class="input input-bordered w-full font-bold" placeholder="VD: VIB Super Card" />
             </div>
-            <div class="space-y-2">
-                <label class="text-[10px] font-black uppercase text-gray-400 ml-1 tracking-widest">Ngân hàng phát hành</label>
-                <input @bind="Card.Bank" 
-                       class="w-full px-5 py-4 bg-gray-50 border-2 border-transparent focus:border-indigo-500 focus:bg-white rounded-2xl transition-all font-bold text-gray-800 uppercase" 
-                       placeholder="VD: VIB, VPBANK..." />
+            <div class="form-control">
+                <label class="label">
+                    <span class="label-text text-xs font-black uppercase">Ngân hàng phát hành</span>
+                </label>
+                <input @bind="Card.Bank" class="input input-bordered w-full font-bold uppercase" placeholder="VD: VIB, VPBANK..." />
             </div>
         </div>
 
         @* Section 2: Chu kỳ thanh toán & Hạn mức *@
         <div class="grid grid-cols-2 md:grid-cols-3 gap-6">
-            <div class="space-y-1">
-                <label class="text-[10px] font-black uppercase text-gray-400 ml-1 tracking-widest">Ngày chốt sao kê</label>
-                <input type="number" @bind="Card.StatementDate" min="1" max="31" class="w-full px-5 py-4 bg-gray-50 border-0 rounded-2xl font-bold" />
+            <div class="form-control">
+                <label class="label">
+                    <span class="label-text text-xs font-black uppercase">Ngày chốt sao kê</span>
+                </label>
+                <input type="number" @bind="Card.StatementDate" min="1" max="31" class="input input-bordered w-full font-bold" />
             </div>
-            <div class="space-y-1">
-                <label class="text-[10px] font-black uppercase text-gray-400 ml-1 tracking-widest">Ngày miễn lãi</label>
-                <input type="number" @bind="Card.GracePeriod" class="w-full px-5 py-4 bg-gray-50 border-0 rounded-2xl font-bold" />
+            <div class="form-control">
+                <label class="label">
+                    <span class="label-text text-xs font-black uppercase">Ngày miễn lãi</span>
+                </label>
+                <input type="number" @bind="Card.GracePeriod" class="input input-bordered w-full font-bold" />
             </div>
             <CurrencyInput Label="Hạn mức thẻ" @bind-Value="Card.Limit" />
         </div>
 
         @* Section 3: Phí thường niên & Ghi chú *@
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 p-5 bg-slate-50 rounded-3xl border border-slate-100">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 p-5 bg-base-200 rounded-3xl border border-base-300">
             <CurrencyInput Label="Phí thường niên" @bind-Value="Card.AnnualFeeAmount" />
-            <div class="space-y-1">
-                <label class="text-[10px] font-black uppercase text-gray-400 ml-1 tracking-widest">Ngày thu phí</label>
-                <input type="date" @bind="Card.AnnualFeeDate" class="w-full px-5 py-4 bg-white border-0 rounded-2xl font-bold" />
+            <div class="form-control">
+                <label class="label">
+                    <span class="label-text text-xs font-black uppercase">Ngày thu phí</span>
+                </label>
+                <input type="date" @bind="Card.AnnualFeeDate" class="input input-bordered w-full font-bold" />
             </div>
         </div>
 
         @* Section 4: Cấu hình Cashback động *@
-        <div class="p-6 bg-indigo-50/50 rounded-[32px] border border-indigo-100 space-y-6">
+        <div class="p-6 bg-primary/10 rounded-3xl border border-primary/20 space-y-6">
             @* Cashback Master Switch *@
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 bg-indigo-500 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-200">
-                        <i class="material-icons text-white">loyalty</i>
+                    <div class="avatar placeholder">
+                        <div class="bg-primary text-primary-content rounded-xl w-10 h-10 flex items-center justify-center">
+                            <i class="material-icons">loyalty</i>
+                        </div>
                     </div>
                     <div>
-                        <h4 class="text-sm font-black text-slate-800 uppercase">Tính năng Cashback</h4>
-                        <p class="text-[9px] font-bold text-indigo-400 uppercase">Global Cashback Configuration</p>
+                        <h4 class="text-sm font-black text-base-content uppercase">Tính năng Cashback</h4>
+                        <p class="text-xs font-bold text-primary uppercase">Global Cashback Configuration</p>
                     </div>
                 </div>
-                <label class="relative inline-flex items-center cursor-pointer">
-                    <input type="checkbox" @bind="_isCashbackActive" class="sr-only peer">
-                    <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
-                </label>
+                <input type="checkbox" @bind="_isCashbackActive" class="toggle toggle-primary" />
             </div>
 
             @if (_isCashbackActive)
@@ -83,7 +88,7 @@
                     <CurrencyInput Label="Chi tiêu tối thiểu để hoàn" @bind-Value="_minSpendRequest" />
                 </div>
 
-                <hr class="border-indigo-100" />
+                <hr class="border-primary/20" />
 
                 @* Danh sách MCC chi tiết *@
                 <MccListEditor Benefits="Card.BenefitsList" MccOptions="MasterData.MccList" />
@@ -91,42 +96,30 @@
         </div>
         
         @* Section 5: Trạng thái (Checkboxes)[cite: 1] *@
-        <div class="flex flex-wrap gap-8 p-4 bg-indigo-50/30 rounded-2xl border border-dashed border-indigo-100">
-            <label class="flex items-center gap-3 cursor-pointer group">
-                <div class="relative flex items-center">
-                    <input type="checkbox" @bind="Card.IsPaid" 
-                           class="w-6 h-6 rounded-lg border-gray-300 text-indigo-600 focus:ring-indigo-500 transition-all" />
-                </div>
-                <span class="text-xs font-black uppercase text-gray-500 group-hover:text-indigo-600 transition-colors">Đã thanh toán dư nợ</span>
+        <div class="flex flex-wrap gap-8 p-4 bg-base-100 rounded-2xl border border-dashed border-base-300">
+            <label class="flex items-center gap-3 cursor-pointer">
+                <input type="checkbox" @bind="Card.IsPaid" class="checkbox checkbox-primary" />
+                <span class="text-xs font-black uppercase text-base-content">Đã thanh toán dư nợ</span>
             </label>
 
-            <label class="flex items-center gap-3 cursor-pointer group">
-                <div class="relative flex items-center">
-                    <input type="checkbox" @bind="Card.HasOffer" 
-                           class="w-6 h-6 rounded-lg border-gray-300 text-purple-600 focus:ring-purple-500 transition-all" />
-                </div>
-                <span class="text-xs font-black uppercase text-gray-500 group-hover:text-purple-600 transition-colors">Đã nhận Offer phí</span>
+            <label class="flex items-center gap-3 cursor-pointer">
+                <input type="checkbox" @bind="Card.HasOffer" class="checkbox checkbox-secondary" />
+                <span class="text-xs font-black uppercase text-base-content">Đã nhận Offer phí</span>
             </label>
             
-            <label class="flex items-center gap-3 cursor-pointer group">
-                <div class="relative flex items-center">
-                    <select @bind="Card.Status" class="bg-transparent border-0 font-black text-xs uppercase text-gray-500 focus:ring-0 cursor-pointer">
-                        <option value="Active">Hoạt động</option>
-                        <option value="Locked">Đã khóa</option>
-                    </select>
-                </div>
+            <label class="flex items-center gap-3 cursor-pointer">
+                <select @bind="Card.Status" class="select select-bordered select-xs font-black uppercase">
+                    <option value="Active">Hoạt động</option>
+                    <option value="Locked">Đã khóa</option>
+                </select>
             </label>
         </div>
     </div>
 
     @* Footer *@
-    <div class="p-6 border-t border-gray-100 bg-gray-50/50 flex gap-4">
-        <button @onclick="Close" class="px-6 py-4 border-2 border-gray-200 rounded-2xl font-black text-gray-400 hover:bg-white hover:text-gray-600 transition-all text-xs uppercase tracking-widest">
-            HỦY BỎ
-        </button>
-        <button @onclick="HandleSave" class="flex-1 py-4 bg-gray-900 text-white rounded-2xl font-black hover:bg-indigo-600 shadow-xl shadow-indigo-200 active:scale-[0.98] transition-all text-xs uppercase tracking-widest">
-            XÁC NHẬN LƯU THAY ĐỔI
-        </button>
+    <div class="modal-action flex gap-4">
+        <button @onclick="Close" class="btn btn-ghost">HỦY BỎ</button>
+        <button @onclick="HandleSave" class="btn btn-primary flex-1">XÁC NHẬN LƯU THAY ĐỔI</button>
     </div>
 </ModalContainer>
 

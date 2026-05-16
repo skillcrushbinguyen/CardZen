@@ -1,13 +1,45 @@
+
 @import "tailwindcss";
 @plugin "daisyui" {
-    themes: dracula --default, light --prefersdark;
+    themes: light --default, dark --prefersdark;
     logs: false;
 }
-/* html, body {
+
+/* @tailwind base;
+@tailwind components;
+@tailwind utilities; */
+
+/* 1. Cấu hình Font và Nền tảng */
+:root {
+    --primary-indigo: #4338ca; /* indigo-700 */
+    --dark-bg: #2b2b2b;        /* Màu Darcula cơ bản */
+    --dark-purple: #bb86fc;    /* Purple accent */
+}
+
+html, body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     @apply bg-gray-50 text-gray-900;
     scroll-behavior: smooth;
-} */
+}
+
+/* 2. Custom Styles cho NavLink Blazor */
+.nav-link { 
+    @apply text-gray-600 hover:text-indigo-600 font-medium transition-all duration-200 flex items-center gap-2; 
+}
+
+/* Khi Route khớp, Blazor tự thêm class .active vào thẻ <a> */
+.nav-link.active { 
+    @apply text-indigo-700 border-b-2 border-indigo-700 pb-1 font-bold; 
+}
+
+.mobile-nav-item { 
+    @apply flex flex-col items-center text-gray-400 w-full transition-all duration-300 ease-in-out; 
+}
+
+.mobile-nav-item.active { 
+    @apply text-indigo-600 scale-110 font-bold; 
+}
+
 /* 3. Loading Progress (Giữ lại từ file index.html gốc) */
 .loading-progress {
     position: relative;
@@ -77,4 +109,13 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
+}
+
+/* 5. Utility classes cho Card và Input */
+.card-zen {
+    @apply bg-white rounded-2xl shadow-sm border border-gray-100 p-4 transition-shadow hover:shadow-md;
+}
+
+.input-zen {
+    @apply w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all;
 }

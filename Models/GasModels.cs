@@ -70,6 +70,8 @@ public class CardModel
     [JsonPropertyName("fee_note")]
     public string? FeeNote { get; set; }
 
+    [JsonPropertyName("bank_url")]
+    public string CardUrl { get; set; } = string.Empty; // URL ảnh thẻ
     // Cashback (Được parse từ chuỗi JSON cashback_rules trong code cũ)
     //public CashbackRules CashbackRules { get; set; } = new();
     

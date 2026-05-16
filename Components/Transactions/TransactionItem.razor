@@ -1,4 +1,124 @@
+@using CardZen.Models
+
 @* 1 dòng giao dịch *@
-<div>
-    <!-- TODO: Hiển thị 1 giao dịch, nhận TransactionModel làm parameter -->
+<div class="relative swipeable-item group"
+    tabindex="0"
+    style="--txn-border-color: @(Transaction.Type == "EXPENSE" ? "#f43f5e" : Transaction.Type == "INCOME" ? "#10b981" : "#64748b"); height: 114px; margin-bottom: 16px;"
+    data-txn-id="@Transaction.Id" @key="Transaction.Id">
+    <!-- Nội dung chính, sẽ translate khi swipe, chứa luôn actions ở cuối -->
+    <div class="content card bg-base-200 !flex !flex-row items-stretch gap-3 p-3 transition-transform duration-200 overflow-hidden
+        hover:shadow-xl focus-within:ring-2 focus-within:ring-primary/30"
+        style="will-change: transform; width: 100%; border-left: 8px solid @(Transaction.Type == "EXPENSE" ? "#f43f5e" : Transaction.Type == "INCOME" ? "#10b981" : "#64748b");"
+    >
+        <!-- Avatar thẻ bên trái -->
+        <div class="flex flex-col items-center justify-center min-w-[56px]">
+            <div class="indicator mb-1">
+                <span class="indicator-item indicator-bottom indicator-end badge badge-sm w-6 h-6 rounded-full ring ring-info border-2 border-base-200 shadow-sm p-1.5">@GetCategoryIcon(Transaction.Category)</span>
+                <div class="avatar">
+                    <div class="w-11 rounded-full ring ring-primary ring-offset-base-100 ring-offset-2">
+                        @{
+                            var cardImageUrl = GetCardImageUrl(Transaction.CardId);
+                        }
+                        @if (!string.IsNullOrEmpty(cardImageUrl))
+                        {
+                            <img src="@cardImageUrl" alt="Card" />
+                        }
+                        else
+                        {
+                            <div class="bg-neutral flex items-center justify-center">
+                                <span class="text-xl">💳</span>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+            <div class="text-xs text-base-content/40">@Transaction.Date.ToString("dd/MM")</div>
+        </div>
+        <!-- Nội dung bên phải -->
+        <div class="flex-1 flex flex-col justify-center py-2">
+            <div class="flex items-center gap-2">
+                <span class="font-bold text-lg text-base-content">@Transaction.Amount.ToString("N0")đ</span>
+                <span class="ml-1 text-xs font-bold @(Transaction.CashbackAmount > 0 ? "text-primary" : "text-base-content/40")">+@Transaction.CashbackAmount.ToString("N0")đ</span>
+            </div>
+            <div class="flex flex-wrap gap-2 mt-1 text-xs text-base-content/50">
+                <span class="font-semibold">@Transaction.Category</span>
+                <span>|</span>
+                <span>MCC: <span class="font-semibold">@Transaction.Mcc</span></span>
+            </div>
+            @if (!string.IsNullOrWhiteSpace(Transaction.Note))
+            {
+                <div class="text-xs text-base-content/40 italic mt-1 line-clamp-2">@Transaction.Note</div>
+            }
+        </div>
+        <!-- Actions: mobile=trong flow, desktop=absolute positioned -->
+        <div class="actions flex flex-row gap-0">
+            <!-- Edit -->
+            <button class="action-btn edit" title="Sửa" @onclick:stopPropagation="true" @onclick="OnEdit" disabled="@IsLoading">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536M9 13l6-6 3 3-6 6H9v-3z" /></svg>
+            </button>
+            <!-- Copy -->
+            <button class="action-btn copy" title="Sao chép" @onclick:stopPropagation="true" @onclick="OnCopy" disabled="@IsLoading">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><rect x="9" y="9" width="13" height="13" rx="2" ry="2" stroke-width="2" stroke="currentColor" fill="none"/><rect x="3" y="3" width="13" height="13" rx="2" ry="2" stroke-width="2" stroke="currentColor" fill="none"/></svg>
+            </button>
+            <!-- Delete -->
+            <button class="action-btn delete" title="Xóa" @onclick:stopPropagation="true" @onclick="OnDelete" disabled="@(IsLoading || IsDeleting)">
+                @if (IsDeleting)
+                {
+                    <svg class="animate-spin h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path></svg>
+                }
+                else
+                {
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                }
+            </button>
+        </div>
+    </div>
 </div>
+
+@code {
+    [Parameter] public TransactionModel Transaction { get; set; } = new();
+    [Parameter] public List<CardModel> CardList { get; set; } = new();
+    [Parameter] public List<SelectOption> CategoryList { get; set; } = new();
+    [Parameter] public bool IsLoading { get; set; }
+    [Parameter] public bool IsDeleting { get; set; }
+    [Parameter] public EventCallback OnEditClick { get; set; }
+    [Parameter] public EventCallback OnCopyClick { get; set; }
+    [Parameter] public EventCallback OnDeleteClick { get; set; }
+
+    private async Task OnEdit() => await OnEditClick.InvokeAsync();
+    private async Task OnCopy() => await OnCopyClick.InvokeAsync();
+    private async Task OnDelete() => await OnDeleteClick.InvokeAsync();
+
+    private string GetCategoryIcon(string? category)
+    {
+        string? icon = CategoryList.FirstOrDefault(c => c.Value == category)?.Icon;
+        if (!string.IsNullOrEmpty(icon)) return icon;
+        
+        return category switch
+        {
+            "Ăn uống" => "🍔",
+            "Mua sắm" => "🛒",
+            "Đi lại" => "🚗",
+            "Giải trí" => "🎮",
+            "Du lịch" => "✈️",
+            "Học tập" => "📚",
+            _ => "💳"
+        };
+    }
+
+    private string GetCardName(string? cardId)
+    {
+        var card = CardList?.FirstOrDefault(c => c.Id == cardId);
+        return card != null ? $"{card.Bank} - {card.Name}" : "";
+    }
+
+    private string GetCardImageUrl(string? cardId)
+    {
+        var card = CardList?.FirstOrDefault(c => c.Id == cardId);
+        if (card == null || string.IsNullOrEmpty(card.CardUrl)) 
+            return string.Empty;
+        
+        // Resolve URL: /banks + CardUrl
+        return $"images/banks/{card.CardUrl}";
+    }
+}

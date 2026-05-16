@@ -2,20 +2,19 @@
 @using Microsoft.AspNetCore.Components.Web
 
 <div class="relative">
-    <!-- Label removed for external control -->
-            <input type="text"
-                class="w-full rounded-xl px-3 py-2 border border-slate-200 text-right font-mono text-lg focus:ring-2 focus:ring-indigo-500 transition-all"
-                @bind="DisplayValue"
-                @bind:event="oninput"
-                @onblur="OnBlur"
-                @onkeydown="HandleKeyDown"
-                @onkeydown:preventDefault="isEnterKeyDown"
-                placeholder="0"
-                autocomplete="off" />
+    <input type="text"
+        class="input input-bordered w-full text-right font-mono"
+        @bind="DisplayValue"
+        @bind:event="oninput"
+        @onblur="OnBlur"
+        @onkeydown="HandleKeyDown"
+        @onkeydown:preventDefault="isEnterKeyDown"
+        placeholder="0"
+        autocomplete="off" />
     <input type="hidden" value="@Value" />
     @if (ShowPreview && PreviewValue > 0)
     {
-        <div class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-indigo-500 bg-white px-2 rounded shadow">= @PreviewValue.ToString("N0")đ</div>
+        <div class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-primary bg-base-100 px-2 rounded shadow">= @PreviewValue.ToString("N0")đ</div>
     }
 </div>
 
